@@ -102,6 +102,7 @@ class _CreateMoldScreenState extends State<CreateMoldScreen> {
             
             // Mold Type Selection
             const Text('Mold Type', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
             SegmentedButton<MoldType>(
               segments: const [
                 ButtonSegment(value: MoldType.type1K, label: Text('1K (Fixed/Mobile)')),
@@ -118,6 +119,7 @@ class _CreateMoldScreenState extends State<CreateMoldScreen> {
 
             // Insert Type Selection
             const Text('Insert Type', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
             SegmentedButton<InsertBlockType>(
               segments: const [
                 ButtonSegment(value: InsertBlockType.single, label: Text('Single Block')),
@@ -136,21 +138,27 @@ class _CreateMoldScreenState extends State<CreateMoldScreen> {
             const Text('Configuration (Rows x Columns)', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
 
-            _buildDimensionInput('Fixed Side', (r, c) {
-              _fixedRows = r;
-              _fixedCols = c;
-            }),
+            _buildDimensionInput(
+              'Fixed Side', 
+              _fixedRows, _fixedCols, 
+              (r) => setState(() => _fixedRows = r),
+              (c) => setState(() => _fixedCols = c)
+            ),
             
-            _buildDimensionInput('Mobile Side', (r, c) {
-              _mobileRows = r;
-              _mobileCols = c;
-            }),
+            _buildDimensionInput(
+              'Mobile Side', 
+              _mobileRows, _mobileCols,
+              (r) => setState(() => _mobileRows = r),
+              (c) => setState(() => _mobileCols = c)
+            ),
 
             if (_selectedType == MoldType.type2K)
-              _buildDimensionInput('Cube Faces (All 4)', (r, c) {
-                _cubeRows = r;
-                _cubeCols = c;
-              }),
+              _buildDimensionInput(
+                'Cube Faces (All 4)', 
+                _cubeRows, _cubeCols,
+                (r) => setState(() => _cubeRows = r),
+                (c) => setState(() => _cubeCols = c)
+              ),
 
             const SizedBox(height: 32),
             FilledButton(
@@ -166,7 +174,13 @@ class _CreateMoldScreenState extends State<CreateMoldScreen> {
     );
   }
 
-  Widget _buildDimensionInput(String label, Function(int, int) onChanged) {
+  Widget _buildDimensionInput(
+    String label, 
+    int currentRows, 
+    int currentCols,
+    Function(int) onRowsChanged,
+    Function(int) onColsChanged,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Column(
@@ -178,20 +192,13 @@ class _CreateMoldScreenState extends State<CreateMoldScreen> {
             children: [
               Expanded(
                 child: DropdownButtonFormField<int>(
-                  value: 2,
+                  value: currentRows,
                   decoration: const InputDecoration(labelText: 'Rows', border: OutlineInputBorder()),
                   items: List.generate(10, (index) => index + 1)
                       .map((e) => DropdownMenuItem(value: e, child: Text('$e')))
                       .toList(),
                   onChanged: (val) {
-                    if (val != null) {
-                      // We need to store the values locally in the widget state to persist them
-                      // But for this helper, we rely on the callback to update the parent state variables
-                      // However, the dropdown needs a state variable to show the current value.
-                      // To keep it simple, I'll just use a stateful builder or just let the user pick.
-                      // Actually, the parent state vars (_fixedRows etc) should drive this.
-                      // Let's refactor slightly to use the parent variables directly in the builder call.
-                    }
+                    if (val != null) onRowsChanged(val);
                   },
                 ),
               ),
@@ -200,12 +207,14 @@ class _CreateMoldScreenState extends State<CreateMoldScreen> {
               const SizedBox(width: 16),
               Expanded(
                 child: DropdownButtonFormField<int>(
-                  value: 2,
+                  value: currentCols,
                   decoration: const InputDecoration(labelText: 'Cols', border: OutlineInputBorder()),
                   items: List.generate(10, (index) => index + 1)
                       .map((e) => DropdownMenuItem(value: e, child: Text('$e')))
                       .toList(),
-                  onChanged: (val) {},
+                  onChanged: (val) {
+                    if (val != null) onColsChanged(val);
+                  },
                 ),
               ),
             ],
